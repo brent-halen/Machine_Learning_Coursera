@@ -1,0 +1,228 @@
+---
+title: "Predicting Exercise Form from Accelerometer Data"
+subtitle: "A Project for Coursera's Machine Learning Course"
+author: "Brent Halen"
+date: "August 7, 2016"
+output: html_document
+---
+
+The data for this project come from this source: http://groupware.les.inf.puc-rio.br/har. 
+
+#Background
+
+Using devices such as Jawbone Up, Nike FuelBand, and Fitbit it is now possible to collect a large amount of data about personal activity relatively inexpensively. These type of devices are part of the quantified self movement – a group of enthusiasts who take measurements about themselves regularly to improve their health, to find patterns in their behavior, or because they are tech geeks. One thing that people regularly do is quantify how much of a particular activity they do, but they rarely quantify how well they do it. In this project, your goal will be to use data from accelerometers on the belt, forearm, arm, and dumbell of 6 participants. They were asked to perform barbell lifts correctly and incorrectly in 5 different ways. More information is available from the website here: http://groupware.les.inf.puc-rio.br/har (see the section on the Weight Lifting Exercise Dataset).
+
+The training data for this project are available here:
+
+https://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv
+
+The test data are available here:
+
+https://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv
+
+```{r}
+require('caret')
+require('e1071')
+require('randomForest')
+require('gbm')
+require('plyr')
+require('MASS')
+```
+
+
+#Loading the Data
+
+For this project, I pre-downloaded the files to my working directory. The files are called "pml-training.csv" and "pml-testing.csv". You can check whether or not these files are present with the list.files() command. 
+
+```{r}
+list.files()
+```
+
+If the files aren't located in the working directory, you can get the working directory with the getwd() command and download the files to that directory. Otherwise, you can use the setwd() command to set the working directory to where you've downloaded the files. 
+
+```{r}
+training <- read.csv('pml-training.csv')
+unknown_test <- as.data.frame(read.csv('pml-testing.csv'))
+```
+
+#Preprocessing
+
+As we pre-process our training data, we'll apply the same changes to the unknown_test data. 
+
+```{r}
+dim(training)
+dim(unknown_test)
+```
+
+To simplify this dataset, we'll remove the columns with a high fraction of missing values (more than 90%). 
+
+```{r}
+count.NA <- sapply(training,function(x) sum(is.na(x)))
+count.NA2 <- sapply(unknown_test,function(x) sum(is.na(x)))
+index.NA <- c()
+index.NA2 <- c()
+for (i in 1:length(count.NA)) {
+  if (count.NA[[i]]/dim(training)[1] >= 0.9) {
+    index.NA <- append(index.NA,i)
+  }
+}
+for (i in 1:length(count.NA2)) {
+  if (count.NA2[[i]]/dim(unknown_test)[1] >= 0.9) {
+    index.NA2 <- append(index.NA2,i)
+  }
+}
+training <- training[,-index.NA]
+unknown_test <- unknown_test[,-index.NA2]
+nearzero <- nearZeroVar(training,saveMetrics=T)
+nearzero2 <- nearZeroVar(unknown_test,saveMetrics=T)
+head(nearzero)
+training <- training[,nearzero$nzv == FALSE]
+unknown_test <- unknown_test[,nearzero2$nzv == FALSE]
+dim(training);names(training)
+```
+
+We don't need the observation ID, user_name, or the timestamps. We can remove those as well. 
+
+```{r}
+training <- training[,-c(1:5)]; dim(training);
+unknown_test <- unknown_test[,-c(1:5)]; dim(unknown_test)
+```
+
+We've simplified our dataset to 54 predictors. 
+
+#Subsetting
+
+We will partition the 'pml-training' data into a 'training' and 'test' set. 
+
+```{r}
+set.seed(33414)
+inTrain <- createDataPartition(training$classe,p=0.75,list=FALSE)
+SubTrain <- training[inTrain,]
+SubTest <- training[-inTrain,]
+```
+
+# Training Models
+
+We will train a random forest, boosted tree, discriminant analysis model, and a support vector machine. We will then stack the predictions of these models for a combined model using the random forest method. Then, we will analyze the accuracy of all 5 models and select the most effective one. This might take a while, so I would recommend anyone attempting to duplicate this at home do something else to occupy their time while it's fitting the models. This took my computer close to 2 hours to finish. 
+
+```{r}
+set.seed(62433)
+mod_rf <- train(classe ~., data=SubTrain, method = "rf")
+```
+
+```{r}
+mod_gbm <- train(classe ~., data=SubTrain, method = "gbm",verbose=FALSE)
+```
+
+```{r}
+mod_lda <- train(classe ~., data=SubTrain, method = "lda")
+```
+
+```{r}
+mod_svm <- svm(classe ~ .,data=SubTrain)
+```
+
+```{r}
+pred_rf <- predict(mod_rf, SubTest)
+```
+
+```{r}
+pred_gbm <- predict(mod_gbm,SubTest)
+```
+
+```{r}
+pred_lda <- predict(mod_lda,SubTest)
+```
+
+```{r}
+pred_svm <- predict(mod_svm,SubTest)
+```
+
+#Accuracy Testing
+
+Now that our models are trained and we have our predictions made, we can test the accuracy. We will use 'confusionMatrix' to measure the accuracy of our models and compare their overall accuracy. 
+
+## Standard Random Forest
+
+```{r}
+confusionMatrix(pred_rf, SubTest$classe)$overall[1]
+```
+
+The standard Random Forest model has an accuracy rate of 0.997553. 
+
+## Boosted Trees
+
+```{r}
+confusionMatrix(pred_gbm, SubTest$classe)$overall[1]
+```
+
+The Boosted Trees model has an accuracy rate of 0.9857259. 
+
+## Linear Discriminant
+
+```{r}
+confusionMatrix(pred_lda, SubTest$classe)$overall[1]
+```
+
+Linear Discriminant model has an accuracy rate of 0.7216558.
+
+## Support Vector Machine
+
+```{r}
+confusionMatrix(pred_svm, SubTest$classe)$overall[1]
+```
+
+The support vector machine has an accuracy rate of 0.9502447. 
+
+
+## Select Best Model
+
+The model with the highest accuracy was the random forest. Because of this, we will use the random forest going forward. 
+
+```{r}
+plot(mod_rf)
+```
+
+```{r}
+plot(mod_rf$finalModel)
+```
+
+#Final Test Set
+
+## Predictions on unknown sample
+
+In this segment, we will make predictions on an unknown set of values provided in the "pml-testing.csv" file. This has already been assigned to the variable 'unknown_test'. 
+
+```{r}
+finalpredict <- predict(mod_rf, unknown_test)
+print(finalpredict)
+```
+
+## Save Output to file
+
+We will now use the following code to output our predictions to the required file formats. 
+
+```{r}
+answer <- as.vector(finalpredict)
+
+write_answer_file = function(x) {
+    n = length(x)
+    for (i in 1:n) {
+        filename = paste0("problem_id_", i, ".txt")
+        write.table(x[i], file = filename, quote = FALSE, row.names = FALSE, 
+            col.names = FALSE)
+    }
+}
+
+write_answer_file(answer)
+```
+
+# Conclusion
+
+I hope you've enjoyed this presentation and understand why I chose the models I did. Thank you for reading, and happy modeling. 
+
+# References
+
+[1] Velloso, E.; Bulling, A.; Gellersen, H.; Ugulino, W.; Fuks, H. Qualitative Activity Recognition of Weight Lifting Exercises. Proceedings of 4th International Conference in Cooperation with SIGCHI (Augmented Human '13) . Stuttgart, Germany: ACM SIGCHI, 2013.
+
+Read more: http://groupware.les.inf.puc-rio.br/har#ixzz4Gm71Ua1L
