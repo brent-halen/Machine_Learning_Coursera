@@ -21,12 +21,14 @@ The test data are available here:
 https://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv
 
 ```{r}
-require('caret')
-require('e1071')
-require('randomForest')
-require('gbm')
-require('plyr')
-require('MASS')
+## The following commented out line of code can be used to install the necessary packages if they're not already present on your computer. 
+## install.packages("caret",dep=T);install.packages("e1071",dep=T);install.packages("randomForest",dep=T);install.packages("gbm",dep=T);install.packages("plyr",dep=T);install.packages("MASS",dep=T)
+library("caret")
+library("e1071")
+library("randomForest")
+library("gbm")
+library("plyr")
+library("MASS")
 ```
 
 
