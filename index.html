@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <meta charset="UTF-8">
+    <title>Machine learning coursera by brent-halen</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" type="text/css" href="stylesheets/normalize.css" media="screen">
+    <link href='https://fonts.googleapis.com/css?family=Open+Sans:400,700' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen">
+    <link rel="stylesheet" type="text/css" href="stylesheets/github-light.css" media="screen">
+  </head>
+  <body>
+    <section class="page-header">
+      <h1 class="project-name">Machine learning coursera</h1>
+      <h2 class="project-tagline">Coursera Machine Learning Course Project</h2>
+      <a href="https://github.com/brent-halen/Machine_Learning_Coursera" class="btn">View on GitHub</a>
+      <a href="https://github.com/brent-halen/Machine_Learning_Coursera/zipball/master" class="btn">Download .zip</a>
+      <a href="https://github.com/brent-halen/Machine_Learning_Coursera/tarball/master" class="btn">Download .tar.gz</a>
+    </section>
+
+    <section class="main-content">
+      <h1>
+<a id="predicting-exercise-form-from-accelerometer-data" class="anchor" href="#predicting-exercise-form-from-accelerometer-data" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Predicting Exercise Form from Accelerometer Data</h1>
+
+<h2>
+<a id="a-project-for-courseras-machine-learning-course" class="anchor" href="#a-project-for-courseras-machine-learning-course" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>A Project for Coursera's Machine Learning Course</h2>
+
+<hr>
+
+<p>author: "Brent Halen"
+date: "August 7, 2016"</p>
+
+<h2>
+<a id="output-html_document" class="anchor" href="#output-html_document" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>output: html_document</h2>
+
+<p>The data for this project come from this source: <a href="http://groupware.les.inf.puc-rio.br/har">http://groupware.les.inf.puc-rio.br/har</a>. </p>
+
+<h3>
+<a id="background" class="anchor" href="#background" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Background</h3>
+
+<p>Using devices such as Jawbone Up, Nike FuelBand, and Fitbit it is now possible to collect a large amount of data about personal activity relatively inexpensively. These type of devices are part of the quantified self movement â a group of enthusiasts who take measurements about themselves regularly to improve their health, to find patterns in their behavior, or because they are tech geeks. One thing that people regularly do is quantify how much of a particular activity they do, but they rarely quantify how well they do it. In this project, your goal will be to use data from accelerometers on the belt, forearm, arm, and dumbell of 6 participants. They were asked to perform barbell lifts correctly and incorrectly in 5 different ways. More information is available from the website here: <a href="http://groupware.les.inf.puc-rio.br/har">http://groupware.les.inf.puc-rio.br/har</a> (see the section on the Weight Lifting Exercise Dataset).</p>
+
+<p>The training data for this project are available here:</p>
+
+<p><a href="https://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv">https://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv</a></p>
+
+<p>The test data are available here:</p>
+
+<p><a href="https://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv">https://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv</a></p>
+
+<div class="highlight highlight-source-r"><pre><span class="pl-c">## The following commented out line of code can be used to install the necessary packages if they're not already present on your computer. </span>
+<span class="pl-c">## install.packages("caret",dep=T);install.packages("e1071",dep=T);install.packages("randomForest",dep=T);install.packages("gbm",dep=T);install.packages("plyr",dep=T);install.packages("MASS",dep=T)</span>
+library(<span class="pl-s"><span class="pl-pds">"</span>caret<span class="pl-pds">"</span></span>)
+library(<span class="pl-s"><span class="pl-pds">"</span>e1071<span class="pl-pds">"</span></span>)
+library(<span class="pl-s"><span class="pl-pds">"</span>randomForest<span class="pl-pds">"</span></span>)
+library(<span class="pl-s"><span class="pl-pds">"</span>gbm<span class="pl-pds">"</span></span>)
+library(<span class="pl-s"><span class="pl-pds">"</span>plyr<span class="pl-pds">"</span></span>)
+library(<span class="pl-s"><span class="pl-pds">"</span>MASS<span class="pl-pds">"</span></span>)</pre></div>
+
+<h3>
+<a id="loading-the-data" class="anchor" href="#loading-the-data" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Loading the Data</h3>
+
+<p>For this project, I pre-downloaded the files to my working directory. The files are called "pml-training.csv" and "pml-testing.csv". You can check whether or not these files are present with the list.files() command. </p>
+
+<div class="highlight highlight-source-r"><pre>list.files()</pre></div>
+
+<p>If the files aren't located in the working directory, you can get the working directory with the getwd() command and download the files to that directory. Otherwise, you can use the setwd() command to set the working directory to where you've downloaded the files. </p>
+
+<div class="highlight highlight-source-r"><pre><span class="pl-smi">training</span> <span class="pl-k">&lt;-</span> read.csv(<span class="pl-s"><span class="pl-pds">'</span>pml-training.csv<span class="pl-pds">'</span></span>)
+<span class="pl-smi">unknown_test</span> <span class="pl-k">&lt;-</span> as.data.frame(read.csv(<span class="pl-s"><span class="pl-pds">'</span>pml-testing.csv<span class="pl-pds">'</span></span>))</pre></div>
+
+<h3>
+<a id="preprocessing" class="anchor" href="#preprocessing" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Preprocessing</h3>
+
+<p>As we pre-process our training data, we'll apply the same changes to the unknown_test data. </p>
+
+<div class="highlight highlight-source-r"><pre>dim(<span class="pl-smi">training</span>)
+dim(<span class="pl-smi">unknown_test</span>)</pre></div>
+
+<p>To simplify this dataset, we'll remove the columns with a high fraction of missing values (more than 90%). </p>
+
+<div class="highlight highlight-source-r"><pre><span class="pl-smi">count.NA</span> <span class="pl-k">&lt;-</span> sapply(<span class="pl-smi">training</span>,<span class="pl-k">function</span>(<span class="pl-smi">x</span>) sum(is.na(<span class="pl-smi">x</span>)))
+<span class="pl-smi">count.NA2</span> <span class="pl-k">&lt;-</span> sapply(<span class="pl-smi">unknown_test</span>,<span class="pl-k">function</span>(<span class="pl-smi">x</span>) sum(is.na(<span class="pl-smi">x</span>)))
+<span class="pl-smi">index.NA</span> <span class="pl-k">&lt;-</span> c()
+<span class="pl-smi">index.NA2</span> <span class="pl-k">&lt;-</span> c()
+<span class="pl-k">for</span> (<span class="pl-smi">i</span> <span class="pl-k">in</span> <span class="pl-c1">1</span><span class="pl-k">:</span>length(<span class="pl-smi">count.NA</span>)) {
+  <span class="pl-k">if</span> (<span class="pl-smi">count.NA</span>[[<span class="pl-smi">i</span>]]<span class="pl-k">/</span>dim(<span class="pl-smi">training</span>)[<span class="pl-c1">1</span>] <span class="pl-k">&gt;</span><span class="pl-k">=</span> <span class="pl-c1">0.9</span>) {
+    <span class="pl-smi">index.NA</span> <span class="pl-k">&lt;-</span> append(<span class="pl-smi">index.NA</span>,<span class="pl-smi">i</span>)
+  }
+}
+<span class="pl-k">for</span> (<span class="pl-smi">i</span> <span class="pl-k">in</span> <span class="pl-c1">1</span><span class="pl-k">:</span>length(<span class="pl-smi">count.NA2</span>)) {
+  <span class="pl-k">if</span> (<span class="pl-smi">count.NA2</span>[[<span class="pl-smi">i</span>]]<span class="pl-k">/</span>dim(<span class="pl-smi">unknown_test</span>)[<span class="pl-c1">1</span>] <span class="pl-k">&gt;</span><span class="pl-k">=</span> <span class="pl-c1">0.9</span>) {
+    <span class="pl-smi">index.NA2</span> <span class="pl-k">&lt;-</span> append(<span class="pl-smi">index.NA2</span>,<span class="pl-smi">i</span>)
+  }
+}
+<span class="pl-smi">training</span> <span class="pl-k">&lt;-</span> <span class="pl-smi">training</span>[,<span class="pl-k">-</span><span class="pl-smi">index.NA</span>]
+<span class="pl-smi">unknown_test</span> <span class="pl-k">&lt;-</span> <span class="pl-smi">unknown_test</span>[,<span class="pl-k">-</span><span class="pl-smi">index.NA2</span>]
+<span class="pl-smi">nearzero</span> <span class="pl-k">&lt;-</span> nearZeroVar(<span class="pl-smi">training</span>,<span class="pl-v">saveMetrics</span><span class="pl-k">=</span><span class="pl-c1">T</span>)
+<span class="pl-smi">nearzero2</span> <span class="pl-k">&lt;-</span> nearZeroVar(<span class="pl-smi">unknown_test</span>,<span class="pl-v">saveMetrics</span><span class="pl-k">=</span><span class="pl-c1">T</span>)
+head(<span class="pl-smi">nearzero</span>)
+<span class="pl-smi">training</span> <span class="pl-k">&lt;-</span> <span class="pl-smi">training</span>[,<span class="pl-smi">nearzero</span><span class="pl-k">$</span><span class="pl-smi">nzv</span> <span class="pl-k">==</span> <span class="pl-c1">FALSE</span>]
+<span class="pl-smi">unknown_test</span> <span class="pl-k">&lt;-</span> <span class="pl-smi">unknown_test</span>[,<span class="pl-smi">nearzero2</span><span class="pl-k">$</span><span class="pl-smi">nzv</span> <span class="pl-k">==</span> <span class="pl-c1">FALSE</span>]
+dim(<span class="pl-smi">training</span>);names(<span class="pl-smi">training</span>)</pre></div>
+
+<p>We don't need the observation ID, user_name, or the timestamps. We can remove those as well. </p>
+
+<div class="highlight highlight-source-r"><pre><span class="pl-smi">training</span> <span class="pl-k">&lt;-</span> <span class="pl-smi">training</span>[,<span class="pl-k">-</span>c(<span class="pl-c1">1</span><span class="pl-k">:</span><span class="pl-c1">5</span>)]; dim(<span class="pl-smi">training</span>);
+<span class="pl-smi">unknown_test</span> <span class="pl-k">&lt;-</span> <span class="pl-smi">unknown_test</span>[,<span class="pl-k">-</span>c(<span class="pl-c1">1</span><span class="pl-k">:</span><span class="pl-c1">5</span>)]; dim(<span class="pl-smi">unknown_test</span>)</pre></div>
+
+<p>We've simplified our dataset to 54 predictors. </p>
+
+<h3>
+<a id="subsetting" class="anchor" href="#subsetting" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Subsetting</h3>
+
+<p>We will partition the 'pml-training' data into a 'training' and 'test' set. </p>
+
+<div class="highlight highlight-source-r"><pre>set.seed(<span class="pl-c1">33414</span>)
+<span class="pl-smi">inTrain</span> <span class="pl-k">&lt;-</span> createDataPartition(<span class="pl-smi">training</span><span class="pl-k">$</span><span class="pl-smi">classe</span>,<span class="pl-v">p</span><span class="pl-k">=</span><span class="pl-c1">0.75</span>,<span class="pl-v">list</span><span class="pl-k">=</span><span class="pl-c1">FALSE</span>)
+<span class="pl-smi">SubTrain</span> <span class="pl-k">&lt;-</span> <span class="pl-smi">training</span>[<span class="pl-smi">inTrain</span>,]
+<span class="pl-smi">SubTest</span> <span class="pl-k">&lt;-</span> <span class="pl-smi">training</span>[<span class="pl-k">-</span><span class="pl-smi">inTrain</span>,]</pre></div>
+
+<h3>
+<a id="training-models" class="anchor" href="#training-models" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Training Models</h3>
+
+<p>We will train a random forest, boosted tree, discriminant analysis model, and a support vector machine. We will then stack the predictions of these models for a combined model using the random forest method. Then, we will analyze the accuracy of all 5 models and select the most effective one. This might take a while, so I would recommend anyone attempting to duplicate this at home do something else to occupy their time while it's fitting the models. This took my computer close to 2 hours to finish. </p>
+
+<div class="highlight highlight-source-r"><pre>set.seed(<span class="pl-c1">62433</span>)
+<span class="pl-smi">mod_rf</span> <span class="pl-k">&lt;-</span> train(<span class="pl-smi">classe</span> <span class="pl-k">~</span>., <span class="pl-v">data</span><span class="pl-k">=</span><span class="pl-smi">SubTrain</span>, <span class="pl-v">method</span> <span class="pl-k">=</span> <span class="pl-s"><span class="pl-pds">"</span>rf<span class="pl-pds">"</span></span>)</pre></div>
+
+<div class="highlight highlight-source-r"><pre><span class="pl-smi">mod_gbm</span> <span class="pl-k">&lt;-</span> train(<span class="pl-smi">classe</span> <span class="pl-k">~</span>., <span class="pl-v">data</span><span class="pl-k">=</span><span class="pl-smi">SubTrain</span>, <span class="pl-v">method</span> <span class="pl-k">=</span> <span class="pl-s"><span class="pl-pds">"</span>gbm<span class="pl-pds">"</span></span>,<span class="pl-v">verbose</span><span class="pl-k">=</span><span class="pl-c1">FALSE</span>)</pre></div>
+
+<div class="highlight highlight-source-r"><pre><span class="pl-smi">mod_lda</span> <span class="pl-k">&lt;-</span> train(<span class="pl-smi">classe</span> <span class="pl-k">~</span>., <span class="pl-v">data</span><span class="pl-k">=</span><span class="pl-smi">SubTrain</span>, <span class="pl-v">method</span> <span class="pl-k">=</span> <span class="pl-s"><span class="pl-pds">"</span>lda<span class="pl-pds">"</span></span>)</pre></div>
+
+<div class="highlight highlight-source-r"><pre><span class="pl-smi">mod_svm</span> <span class="pl-k">&lt;-</span> svm(<span class="pl-smi">classe</span> <span class="pl-k">~</span> .,<span class="pl-v">data</span><span class="pl-k">=</span><span class="pl-smi">SubTrain</span>)</pre></div>
+
+<div class="highlight highlight-source-r"><pre><span class="pl-smi">pred_rf</span> <span class="pl-k">&lt;-</span> predict(<span class="pl-smi">mod_rf</span>, <span class="pl-smi">SubTest</span>)</pre></div>
+
+<div class="highlight highlight-source-r"><pre><span class="pl-smi">pred_gbm</span> <span class="pl-k">&lt;-</span> predict(<span class="pl-smi">mod_gbm</span>,<span class="pl-smi">SubTest</span>)</pre></div>
+
+<div class="highlight highlight-source-r"><pre><span class="pl-smi">pred_lda</span> <span class="pl-k">&lt;-</span> predict(<span class="pl-smi">mod_lda</span>,<span class="pl-smi">SubTest</span>)</pre></div>
+
+<div class="highlight highlight-source-r"><pre><span class="pl-smi">pred_svm</span> <span class="pl-k">&lt;-</span> predict(<span class="pl-smi">mod_svm</span>,<span class="pl-smi">SubTest</span>)</pre></div>
+
+<h3>
+<a id="accuracy-testing" class="anchor" href="#accuracy-testing" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Accuracy Testing</h3>
+
+<p>Now that our models are trained and we have our predictions made, we can test the accuracy. We will use 'confusionMatrix' to measure the accuracy of our models and compare their overall accuracy. </p>
+
+<h4>
+<a id="standard-random-forest" class="anchor" href="#standard-random-forest" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Standard Random Forest</h4>
+
+<div class="highlight highlight-source-r"><pre>confusionMatrix(<span class="pl-smi">pred_rf</span>, <span class="pl-smi">SubTest</span><span class="pl-k">$</span><span class="pl-smi">classe</span>)<span class="pl-k">$</span><span class="pl-smi">overall</span>[<span class="pl-c1">1</span>]</pre></div>
+
+<p>The standard Random Forest model has an accuracy rate of 0.997553. </p>
+
+<h4>
+<a id="boosted-trees" class="anchor" href="#boosted-trees" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Boosted Trees</h4>
+
+<div class="highlight highlight-source-r"><pre>confusionMatrix(<span class="pl-smi">pred_gbm</span>, <span class="pl-smi">SubTest</span><span class="pl-k">$</span><span class="pl-smi">classe</span>)<span class="pl-k">$</span><span class="pl-smi">overall</span>[<span class="pl-c1">1</span>]</pre></div>
+
+<p>The Boosted Trees model has an accuracy rate of 0.9857259. </p>
+
+<h4>
+<a id="linear-discriminant" class="anchor" href="#linear-discriminant" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Linear Discriminant</h4>
+
+<div class="highlight highlight-source-r"><pre>confusionMatrix(<span class="pl-smi">pred_lda</span>, <span class="pl-smi">SubTest</span><span class="pl-k">$</span><span class="pl-smi">classe</span>)<span class="pl-k">$</span><span class="pl-smi">overall</span>[<span class="pl-c1">1</span>]</pre></div>
+
+<p>Linear Discriminant model has an accuracy rate of 0.7216558.</p>
+
+<h4>
+<a id="support-vector-machine" class="anchor" href="#support-vector-machine" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Support Vector Machine</h4>
+
+<div class="highlight highlight-source-r"><pre>confusionMatrix(<span class="pl-smi">pred_svm</span>, <span class="pl-smi">SubTest</span><span class="pl-k">$</span><span class="pl-smi">classe</span>)<span class="pl-k">$</span><span class="pl-smi">overall</span>[<span class="pl-c1">1</span>]</pre></div>
+
+<p>The support vector machine has an accuracy rate of 0.9502447. </p>
+
+<h4>
+<a id="select-best-model" class="anchor" href="#select-best-model" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Select Best Model</h4>
+
+<p>The model with the highest accuracy was the random forest. Because of this, we will use the random forest going forward. </p>
+
+<div class="highlight highlight-source-r"><pre>plot(<span class="pl-smi">mod_rf</span>)</pre></div>
+
+<div class="highlight highlight-source-r"><pre>plot(<span class="pl-smi">mod_rf</span><span class="pl-k">$</span><span class="pl-smi">finalModel</span>)</pre></div>
+
+<h3>
+<a id="final-test-set" class="anchor" href="#final-test-set" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Final Test Set</h3>
+
+<h4>
+<a id="predictions-on-unknown-sample" class="anchor" href="#predictions-on-unknown-sample" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Predictions on unknown sample</h4>
+
+<p>In this segment, we will make predictions on an unknown set of values provided in the "pml-testing.csv" file. This has already been assigned to the variable 'unknown_test'. </p>
+
+<div class="highlight highlight-source-r"><pre><span class="pl-smi">finalpredict</span> <span class="pl-k">&lt;-</span> predict(<span class="pl-smi">mod_rf</span>, <span class="pl-smi">unknown_test</span>)
+print(<span class="pl-smi">finalpredict</span>)</pre></div>
+
+<h4>
+<a id="save-output-to-file" class="anchor" href="#save-output-to-file" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Save Output to file</h4>
+
+<p>We will now use the following code to output our predictions to the required file formats. </p>
+
+<div class="highlight highlight-source-r"><pre><span class="pl-smi">answer</span> <span class="pl-k">&lt;-</span> as.vector(<span class="pl-smi">finalpredict</span>)
+
+<span class="pl-v">write_answer_file</span> <span class="pl-k">=</span> <span class="pl-k">function</span>(<span class="pl-smi">x</span>) {
+    <span class="pl-v">n</span> <span class="pl-k">=</span> length(<span class="pl-smi">x</span>)
+    <span class="pl-k">for</span> (<span class="pl-smi">i</span> <span class="pl-k">in</span> <span class="pl-c1">1</span><span class="pl-k">:</span><span class="pl-smi">n</span>) {
+        <span class="pl-v">filename</span> <span class="pl-k">=</span> paste0(<span class="pl-s"><span class="pl-pds">"</span>problem_id_<span class="pl-pds">"</span></span>, <span class="pl-smi">i</span>, <span class="pl-s"><span class="pl-pds">"</span>.txt<span class="pl-pds">"</span></span>)
+        write.table(<span class="pl-smi">x</span>[<span class="pl-smi">i</span>], <span class="pl-v">file</span> <span class="pl-k">=</span> <span class="pl-smi">filename</span>, <span class="pl-v">quote</span> <span class="pl-k">=</span> <span class="pl-c1">FALSE</span>, <span class="pl-v">row.names</span> <span class="pl-k">=</span> <span class="pl-c1">FALSE</span>, 
+            <span class="pl-v">col.names</span> <span class="pl-k">=</span> <span class="pl-c1">FALSE</span>)
+    }
+}
+
+write_answer_file(<span class="pl-smi">answer</span>)</pre></div>
+
+<h3>
+<a id="conclusion" class="anchor" href="#conclusion" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Conclusion</h3>
+
+<p>I hope you've enjoyed this presentation and understand why I chose the models I did. Thank you for reading, and happy modeling. </p>
+
+<h1>
+<a id="references" class="anchor" href="#references" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>References</h1>
+
+<p>[1] Velloso, E.; Bulling, A.; Gellersen, H.; Ugulino, W.; Fuks, H. Qualitative Activity Recognition of Weight Lifting Exercises. Proceedings of 4th International Conference in Cooperation with SIGCHI (Augmented Human '13) . Stuttgart, Germany: ACM SIGCHI, 2013.</p>
+
+<p>Read more: <a href="http://groupware.les.inf.puc-rio.br/har#ixzz4Gm71Ua1L">http://groupware.les.inf.puc-rio.br/har#ixzz4Gm71Ua1L</a></p>
+
+      <footer class="site-footer">
+        <span class="site-footer-owner"><a href="https://github.com/brent-halen/Machine_Learning_Coursera">Machine learning coursera</a> is maintained by <a href="https://github.com/brent-halen">brent-halen</a>.</span>
+
+        <span class="site-footer-credits">This page was generated by <a href="https://pages.github.com">GitHub Pages</a> using the <a href="https://github.com/jasonlong/cayman-theme">Cayman theme</a> by <a href="https://twitter.com/jasonlong">Jason Long</a>.</span>
+      </footer>
+
+    </section>
+
+  
+  </body>
+</html>
