@@ -162,18 +162,19 @@ library(&quot;MASS&quot;)</code></pre>
 <h1>Loading the Data</h1>
 <p>For this project, I pre-downloaded the files to my working directory. The files are called “pml-training.csv” and “pml-testing.csv”. You can check whether or not these files are present with the list.files() command.</p>
 <pre class="r"><code>list.files()</code></pre>
-<pre><code>##  [1] &quot;Machine_Learning_Project.Rmd&quot; &quot;pml-testing.csv&quot;             
-##  [3] &quot;pml-training.csv&quot;             &quot;problem_id_1.txt&quot;            
-##  [5] &quot;problem_id_10.txt&quot;            &quot;problem_id_11.txt&quot;           
-##  [7] &quot;problem_id_12.txt&quot;            &quot;problem_id_13.txt&quot;           
-##  [9] &quot;problem_id_14.txt&quot;            &quot;problem_id_15.txt&quot;           
-## [11] &quot;problem_id_16.txt&quot;            &quot;problem_id_17.txt&quot;           
-## [13] &quot;problem_id_18.txt&quot;            &quot;problem_id_19.txt&quot;           
-## [15] &quot;problem_id_2.txt&quot;             &quot;problem_id_20.txt&quot;           
-## [17] &quot;problem_id_3.txt&quot;             &quot;problem_id_4.txt&quot;            
-## [19] &quot;problem_id_5.txt&quot;             &quot;problem_id_6.txt&quot;            
-## [21] &quot;problem_id_7.txt&quot;             &quot;problem_id_8.txt&quot;            
-## [23] &quot;problem_id_9.txt&quot;             &quot;README.md&quot;</code></pre>
+<pre><code>##  [1] &quot;Machine_Learning_Project.html&quot; &quot;Machine_Learning_Project.Rmd&quot; 
+##  [3] &quot;pml-testing.csv&quot;               &quot;pml-training.csv&quot;             
+##  [5] &quot;problem_id_1.txt&quot;              &quot;problem_id_10.txt&quot;            
+##  [7] &quot;problem_id_11.txt&quot;             &quot;problem_id_12.txt&quot;            
+##  [9] &quot;problem_id_13.txt&quot;             &quot;problem_id_14.txt&quot;            
+## [11] &quot;problem_id_15.txt&quot;             &quot;problem_id_16.txt&quot;            
+## [13] &quot;problem_id_17.txt&quot;             &quot;problem_id_18.txt&quot;            
+## [15] &quot;problem_id_19.txt&quot;             &quot;problem_id_2.txt&quot;             
+## [17] &quot;problem_id_20.txt&quot;             &quot;problem_id_3.txt&quot;             
+## [19] &quot;problem_id_4.txt&quot;              &quot;problem_id_5.txt&quot;             
+## [21] &quot;problem_id_6.txt&quot;              &quot;problem_id_7.txt&quot;             
+## [23] &quot;problem_id_8.txt&quot;              &quot;problem_id_9.txt&quot;             
+## [25] &quot;README.md&quot;</code></pre>
 <p>If the files aren’t located in the working directory, you can get the working directory with the getwd() command and download the files to that directory. Otherwise, you can use the setwd() command to set the working directory to where you’ve downloaded the files.</p>
 <pre class="r"><code>training &lt;- read.csv('pml-training.csv')
 unknown_test &lt;- as.data.frame(read.csv('pml-testing.csv'))</code></pre>
@@ -272,28 +273,28 @@ mod_rf &lt;- train(classe ~., data=SubTrain, method = &quot;rf&quot;)</code></pr
 <pre class="r"><code>confusionMatrix(pred_rf, SubTest$classe)$overall[1]</code></pre>
 <pre><code>## Accuracy 
 ## 0.997553</code></pre>
-<p>The standard Random Forest model has an accuracy rate of 0.997553.</p>
+<p>The standard Random Forest model has an accuracy rate of 0.997553. (The out-of-sample rate is 0.0025)</p>
 </div>
 <div id="boosted-trees" class="section level2">
 <h2>Boosted Trees</h2>
 <pre class="r"><code>confusionMatrix(pred_gbm, SubTest$classe)$overall[1]</code></pre>
 <pre><code>##  Accuracy 
 ## 0.9857259</code></pre>
-<p>The Boosted Trees model has an accuracy rate of 0.9857259.</p>
+<p>The Boosted Trees model has an accuracy rate of 0.9857259. (The out-of-sample rate is ~0.015.)</p>
 </div>
 <div id="linear-discriminant" class="section level2">
 <h2>Linear Discriminant</h2>
 <pre class="r"><code>confusionMatrix(pred_lda, SubTest$classe)$overall[1]</code></pre>
 <pre><code>##  Accuracy 
 ## 0.7216558</code></pre>
-<p>Linear Discriminant model has an accuracy rate of 0.7216558.</p>
+<p>Linear Discriminant model has an accuracy rate of 0.7216558. (The out-of-sample rate is 0.28.)</p>
 </div>
 <div id="support-vector-machine" class="section level2">
 <h2>Support Vector Machine</h2>
 <pre class="r"><code>confusionMatrix(pred_svm, SubTest$classe)$overall[1]</code></pre>
 <pre><code>##  Accuracy 
 ## 0.9502447</code></pre>
-<p>The support vector machine has an accuracy rate of 0.9502447.</p>
+<p>The support vector machine has an accuracy rate of 0.9502447. (The out-of-sample rate is ~0.05.)</p>
 </div>
 <div id="select-best-model" class="section level2">
 <h2>Select Best Model</h2>

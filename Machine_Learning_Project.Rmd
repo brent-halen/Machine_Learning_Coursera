@@ -150,7 +150,7 @@ Now that our models are trained and we have our predictions made, we can test th
 confusionMatrix(pred_rf, SubTest$classe)$overall[1]
 ```
 
-The standard Random Forest model has an accuracy rate of 0.997553. 
+The standard Random Forest model has an accuracy rate of 0.997553. (The out-of-sample rate is 0.0025)
 
 ## Boosted Trees
 
@@ -158,7 +158,7 @@ The standard Random Forest model has an accuracy rate of 0.997553.
 confusionMatrix(pred_gbm, SubTest$classe)$overall[1]
 ```
 
-The Boosted Trees model has an accuracy rate of 0.9857259. 
+The Boosted Trees model has an accuracy rate of 0.9857259. (The out-of-sample rate is ~0.015.)
 
 ## Linear Discriminant
 
@@ -166,7 +166,7 @@ The Boosted Trees model has an accuracy rate of 0.9857259.
 confusionMatrix(pred_lda, SubTest$classe)$overall[1]
 ```
 
-Linear Discriminant model has an accuracy rate of 0.7216558.
+Linear Discriminant model has an accuracy rate of 0.7216558. (The out-of-sample rate is 0.28.)
 
 ## Support Vector Machine
 
@@ -174,7 +174,7 @@ Linear Discriminant model has an accuracy rate of 0.7216558.
 confusionMatrix(pred_svm, SubTest$classe)$overall[1]
 ```
 
-The support vector machine has an accuracy rate of 0.9502447. 
+The support vector machine has an accuracy rate of 0.9502447. (The out-of-sample rate is ~0.05.)
 
 
 ## Select Best Model
